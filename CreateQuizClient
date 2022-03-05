@@ -1,0 +1,387 @@
+import javax.swing.*;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.*;
+
+/**
+ * CreateQuizClient.java
+ *
+ * The CreateQuizClient and Server classes both are used in the creation
+ * of the quizzes from the Teacher side.
+ *
+ * @author Team #85
+ *
+ * @version December 13, 2021
+ *
+ */
+
+public class CreateQuizClient {
+    private static ObjectInputStream ois;
+    private static ObjectOutputStream oos;
+    private static PrintWriter pw;
+    private static BufferedReader bfr;
+    private static int numberOfQuestions;
+    private static String randomization = "";
+    private static JFrame frame;
+    private static JPanel panel;
+    private static JPanel panelTwo;
+    private static JPanel panelThree;
+    private static JPanel panelFour;
+    private static JPanel panelFive;
+    private static JPanel panelSix;
+    private static int counter = 0;
+
+    public static void createQuiz(JFrame frame1, PrintWriter printWriter, ObjectOutputStream objectOutputStream, ObjectInputStream objectInputStream,  BufferedReader bufferedReader, String courseSelected ){
+
+        pw = printWriter;
+        ois = objectInputStream;
+        oos = objectOutputStream;
+        bfr = bufferedReader;
+        frame = frame1;
+        pw.println(courseSelected);
+        pw.flush();
+        panel = new JPanel();
+        JLabel quizNameLabel = new JLabel("What would you like to name the quiz?");
+        JTextField quizNameField = new JTextField(20);
+        panel.add(quizNameLabel);
+        panel.add(quizNameField);
+        JLabel numberOfQuestionsLabel = new JLabel("How many questions would you like to add to this quiz?");
+        JTextField numberOfQuestionsField = new JTextField(20);
+        JLabel randomizationLabel = new JLabel("Would you like to randomize the order of questions and answers?");
+        JButton yesButton = new JButton("Yes");
+        JButton noButton = new JButton("No");
+        JButton nextButton = new JButton("Continue");
+        panel.add(numberOfQuestionsLabel);
+        panel.add(numberOfQuestionsField);
+        panel.add(randomizationLabel);
+        panel.add(yesButton);
+        panel.add(noButton);
+        panel.add(nextButton);
+
+        nextButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String quizName = quizNameField.getText();
+                pw.println(quizName);
+                pw.flush();
+                String numberOfQuestionsString = numberOfQuestionsField.getText();
+                pw.println(numberOfQuestionsString);
+                if(!(numberOfQuestionsString.equals(""))) {
+                    numberOfQuestions = Integer.parseInt(numberOfQuestionsString);
+                }
+                if(randomization.equals("yes")) {
+                    pw.println("yes");
+                    pw.flush();
+                    askForSubset();
+                }
+                else if (randomization.equals("no")){
+                    pw.println("no");
+                    pw.flush();
+                    pw.println("no");
+                    pw.flush();
+                    regularDeadlinePrompt(frame1, pw);
+                }
+            }
+        });
+        yesButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                randomization = "yes";
+            }
+        });
+        noButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                randomization = "no";
+            }
+        });
+        frame.getContentPane().removeAll();
+        frame.repaint();
+        frame.add(panel);
+        frame.setVisible(true);
+    }
+
+    // to ask the number of questions to be added to question bank for making subset
+    public static void addSubsetPrompt() {
+        
+        panelThree = new JPanel();
+        JLabel subsetQuestionNumberLabel = new JLabel("How many questions from the question bank " +
+                "would you like to have in the quiz?");
+        JTextField subsetQuestionNumberField = new JTextField(20);
+        JButton nextButton = new JButton("Continue");
+        panelThree.add(subsetQuestionNumberLabel);
+        panelThree.add(subsetQuestionNumberField);
+        panelThree.add(nextButton);
+        frame.getContentPane().removeAll();
+        frame.repaint();
+        frame.add(panelThree);
+        frame.setVisible(true);
+        nextButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String subsetQuestionNumber = subsetQuestionNumberField.getText();
+                pw.println(subsetQuestionNumber);
+                pw.flush();
+                regularDeadlinePrompt(frame, pw);
+            }
+        });
+    }
+
+    private static void extendedDeadlinePrompt() {
+        panelFive = new JPanel();
+        JLabel extendedDeadlineLabel = new JLabel("Do you want to give extended deadlines to" +
+                " specific students?");
+        JButton yesButton = new JButton("Yes");
+        JButton noButton = new JButton("No");
+
+        yesButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                frame.getContentPane().removeAll();
+                frame.repaint();
+                frame.setVisible(false);
+                pw.println("yes");
+                pw.flush();
+                extendedUsernameTimePrompt();
+            }
+        });
+        noButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                frame.getContentPane().removeAll();
+                frame.repaint();
+                frame.setVisible(false);
+                pw.println("no");
+                pw.flush();
+                quizQuestionBuilderPrompt();
+            }
+        });
+        frame.getContentPane().removeAll();
+        frame.repaint();
+        panelFive.add(extendedDeadlineLabel);
+        panelFive.add(yesButton);
+        panelFive.add(noButton);
+        frame.add(panelFive);
+        frame.setVisible(true);
+    }
+
+    private static void regularDeadlinePrompt(JFrame frame, PrintWriter pw) {
+        panelFour = new JPanel();
+        JLabel regularDeadlineLabel = new JLabel("What is the regular time limit for this quiz (in minutes)?");
+        JTextField regularDeadlineField = new JTextField(20);
+        JButton nextButton = new JButton("Continue");
+
+        nextButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Integer regularDeadline = Integer.parseInt(regularDeadlineField.getText());
+                pw.println(regularDeadline);
+                pw.flush();
+                extendedDeadlinePrompt();
+            }
+        });
+        frame.getContentPane().removeAll();
+        frame.repaint();
+        panelFour.add(regularDeadlineLabel);
+        panelFour.add(regularDeadlineField);
+        panelFour.add(nextButton);
+        frame.add(panelFour);
+        frame.setVisible(true);
+    }
+
+    private static void extendedUsernameTimePrompt() {
+        panelSix = new JPanel();
+        JLabel extendedUsernameLabel = new JLabel("Please enter the username of the student whose" +
+                " deadline you want to extend.");
+        JTextField extendedUsernameField = new JTextField(20);
+        JLabel extendedTimeLabel = new JLabel("How much time do you want to add (in minutes)?");
+        JTextField extendedTimeField = new JTextField(20);
+        JLabel anotherStudentLabel = new JLabel("Do you want to extend the deadline for another " +
+                "student?");
+        JButton yesButton = new JButton("Yes");
+        JButton noButton = new JButton("No");
+
+        yesButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String extendedTime = extendedTimeField.getText();
+                pw.println(extendedTime);
+                pw.flush();
+                String chosenUsername = extendedUsernameField.getText();
+                pw.println(chosenUsername);
+                pw.flush();
+                pw.println("yes");
+                pw.flush();
+                extendedUsernameTimePromptContinued();
+            }
+        });
+        noButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String extendedTime = extendedTimeField.getText();
+                pw.println(extendedTime);
+                pw.flush();
+                String chosenUsername = extendedUsernameField.getText();
+                pw.println(chosenUsername);
+                pw.flush();
+                pw.println("no");
+                pw.flush();
+                quizQuestionBuilderPrompt();
+            }
+        });
+        panelSix.add(extendedUsernameLabel);
+        panelSix.add(extendedUsernameField);
+        panelSix.add(extendedTimeLabel);
+        panelSix.add(extendedTimeField);
+        panelSix.add(anotherStudentLabel);
+        panelSix.add(noButton);
+        panelSix.add(yesButton);
+        frame.getContentPane().removeAll();
+        frame.repaint();
+        frame.add(panelSix);
+        frame.setVisible(true);
+    }
+
+    private static void extendedUsernameTimePromptContinued(){
+        panel = new JPanel();
+        JLabel extendedUsernameLabel = new JLabel("Please enter the username of the student whose" +
+                " deadline you want to extend.");
+        JTextField extendedUsernameField = new JTextField(20);
+        JLabel anotherStudentLabel = new JLabel("Do you want to extend the deadline for another " +
+                "student?");
+        JButton yesButton = new JButton("Yes");
+        JButton noButton = new JButton("No");
+        CreateQuizClient.panel.add(extendedUsernameLabel);
+        panel.add(extendedUsernameField);
+        panel.add(anotherStudentLabel);
+        panel.add(noButton);
+        panel.add(yesButton);
+        frame.add(panel);
+        frame.setVisible(true);
+        yesButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                frame.getContentPane().removeAll();
+                frame.repaint();
+                frame.setVisible(false);
+                String chosenUsername = extendedUsernameField.getText();
+                pw.println("yes");
+                pw.flush();
+                pw.println(chosenUsername);
+                pw.flush();
+                extendedUsernameTimePromptContinued();
+            }
+        });
+        noButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                frame.getContentPane().removeAll();
+                frame.repaint();
+                frame.setVisible(false);
+                pw.println("no");
+                pw.flush();
+                quizQuestionBuilderPrompt();
+            }
+        });
+    }
+
+    private static void quizQuestionBuilderPrompt() {
+        panel = new JPanel();
+        System.out.println(numberOfQuestions);
+        System.out.println("entered the while loop");
+        JLabel questionLabel = new JLabel("Enter question #" + (counter+1) + ".");
+        JButton enterButton = new JButton("Enter");
+        JTextField questionField = new JTextField(20);
+        JLabel answer1Label = new JLabel("Enter the first answer choice.");
+        JTextField answer1Field = new JTextField(20);
+        JLabel answer2Label = new JLabel("Enter the second answer choice.");
+        JTextField answer2Field = new JTextField(20);
+        JLabel answer3Label = new JLabel("Enter the third answer choice.");
+        JTextField answer3Field = new JTextField(20);
+        JLabel answer4Label = new JLabel("Enter the fourth answer choice.");
+        JTextField answer4Field = new JTextField(20);
+
+        frame.getContentPane().removeAll();
+        frame.repaint();
+        panel.add(questionLabel);
+        panel.add(questionField);
+        panel.add(answer1Label);
+        panel.add(answer1Field);
+        panel.add(answer2Label);
+        panel.add(answer2Field);
+        panel.add(answer3Label);
+        panel.add(answer3Field);
+        panel.add(answer4Label);
+        panel.add(answer4Field);
+        panel.add(enterButton);
+        frame.add(panel);
+        frame.setVisible(true);
+
+        enterButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                counter++;
+                String question = questionField.getText();
+                String answer1 = answer1Field.getText();
+                String answer2 = answer2Field.getText();
+                String answer3 = answer3Field.getText();
+                String answer4 = answer4Field.getText();
+                pw.println(question);
+                pw.flush();
+                pw.println(answer1);
+                pw.flush();
+                pw.println(answer2);
+                pw.flush();
+                pw.println(answer3);
+                pw.flush();
+                pw.println(answer4);
+                pw.flush();
+                if (counter<numberOfQuestions) {
+                    quizQuestionBuilderPrompt();
+                }
+                else if (counter==numberOfQuestions) {
+                    TeacherContinueClient.showQuizMenuGUI();
+                }
+            }
+        });
+    }
+
+    // to ask whether they want the quiz to be a subset
+    public static void askForSubset (){
+        panelTwo = new JPanel();
+        JLabel subsetLabel = new JLabel("Would you like for the quiz to be a random subset of questions" +
+                " of the larger pool that you create?");
+        JButton noButton = new JButton("No");
+        JButton yesButton = new JButton("Yes");
+        yesButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                pw.println("yes");
+                pw.flush();
+                addSubsetPrompt();
+            }
+        });
+        noButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                frame.getContentPane().removeAll();
+                frame.repaint();
+                frame.setVisible(false);
+                pw.println("no");
+                pw.flush();
+                regularDeadlinePrompt(frame, pw);
+            }
+        });
+        frame.getContentPane().removeAll();
+        frame.repaint();
+        panel.add(subsetLabel);
+        panel.add(yesButton);
+        panel.add(noButton);
+        frame.add(panel);
+        frame.setVisible(true);
+    }
+
+}
