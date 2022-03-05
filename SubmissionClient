@@ -1,0 +1,100 @@
+import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.*;
+import java.util.ArrayList;
+/**
+ * SubmissionClient.java
+ *
+ *
+ * The Submission and SubmissionClient classes are the components necessary
+ * for the teacher to view student submissions.
+ *
+ * @author group #85
+ * @version December 13, 2021
+ */
+public class SubmissionClient {
+    private static ObjectInputStream ois;
+    private static ObjectOutputStream oos;
+    private static PrintWriter pw;
+    private static BufferedReader bfr;
+    private static JPanel panel;
+    private static JFrame frame;
+    private static String courseSelected;
+    // this method is called to view student submissions
+    public static void viewStudentSubmissionsGUI(JFrame frame1, PrintWriter printWriter, ObjectInputStream objectInputStream, ObjectOutputStream objectOutputStream, BufferedReader bufferedReader, String courseSelectedString){
+        pw = printWriter;
+        ois = objectInputStream;
+        oos = objectOutputStream;
+        bfr = bufferedReader;
+        frame = frame1;
+        courseSelected = courseSelectedString;
+        addPrompts();
+    }
+    // method to ask name of the quiz and username of the student whose submission teacher has to view
+    public static void addPrompts(){
+        panel = new JPanel();
+        JLabel quizNamePrompt = new JLabel("Please tell the name of the quiz you would like to view student submissions for.");
+        JLabel studentNamePrompt = new JLabel("Please tell the username of the student whose submission you would like to view.");
+        JTextField quizNameField = new JTextField(10);
+        JTextField studentNameField = new JTextField(10);
+        JButton continueButton = new JButton("continue");
+        continueButton.addActionListener(new ActionListener() { // action listener for continue button
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    oos.writeObject(continueButton);
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+
+                // filename is the name of the submission file to be read
+                String filename = courseSelected + "_" + studentNameField.getText() + "_" +  quizNameField.getText() + ".txt" + "_answersheet";
+                pw.println(filename);
+                pw.flush();
+                String submissionContent = null;
+                try {
+                    submissionContent = bfr.readLine();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+                displaySubmissionContent(submissionContent);
+
+            }
+        });
+        panel.add(quizNamePrompt);
+        panel.add(quizNameField);
+        panel.add(studentNamePrompt);
+        panel.add(studentNameField);
+        panel.add(continueButton);
+        frame.getContentPane().removeAll();
+        frame.repaint();
+        frame.add(panel);
+        frame.setVisible(true);
+
+    }
+
+
+
+    public static void displaySubmissionContent(String submissionContent){
+        JPanel panel1 = new JPanel();
+        JLabel submissionContentLabel = new JLabel(submissionContent);
+        JButton returnToQuizMenuButton = new JButton("Return to quiz menu");
+        returnToQuizMenuButton.setActionCommand("return to quiz menu");
+        returnToQuizMenuButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+            }
+        });
+
+        panel1.add(submissionContentLabel);
+        panel1.add(returnToQuizMenuButton);
+        frame.getContentPane().removeAll();
+        frame.repaint();
+        frame.add(panel);
+        frame.setVisible(true);
+
+
+    }
+}
