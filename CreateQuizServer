@@ -1,0 +1,92 @@
+import java.io.BufferedReader;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+
+/**
+ * CreateQuizServer.java
+ *
+ * The CreateQuizClient and Server classes both are used in the creation
+ * of the quizzes from the Teacher side.
+ *
+ * @author Team #85
+ *
+ * @version December 13, 2021
+ *
+ */
+
+public class CreateQuizServer {
+
+    public static void quizQuestionAndAnswerBuilder(BufferedReader bfr, Object gateKeeper) throws IOException {
+        String courseSelected = bfr.readLine();
+        String amountOfSubsets=null;
+        boolean continueReadingUsernames = false;
+        String firstLine;
+        String extendedDeadline=null;
+        String chosenUsernames = null;
+        String quizName = bfr.readLine();
+        String numberOfQuestionsString = bfr.readLine();
+        int amountOfQuestions = 0;
+        if(!(numberOfQuestionsString.equals(""))) {
+            amountOfQuestions = Integer.parseInt(numberOfQuestionsString);
+        }
+
+
+        PrintWriter pw2 = new PrintWriter(new FileOutputStream(courseSelected + "_" + quizName + ".txt", true));
+        String randomizationForQuiz = bfr.readLine();
+        String subsetsForQuiz = bfr.readLine();
+        if (subsetsForQuiz.equals("yes"))
+            amountOfSubsets = bfr.readLine();
+        String regularDeadline = bfr.readLine();
+        String extendedDeadlineChoice = bfr.readLine();
+        if (extendedDeadlineChoice.equals("yes")) {
+            extendedDeadline = bfr.readLine();
+            chosenUsernames = bfr.readLine();
+
+            do{
+                if(bfr.readLine().equals("yes")){
+                    chosenUsernames+=chosenUsernames + bfr.readLine();
+                    continueReadingUsernames=true;
+                }
+                else if (bfr.readLine().equals("no")) {
+                    continueReadingUsernames=false;
+                }
+            } while (continueReadingUsernames);
+        }
+
+        //For continuedDeadlineUsername extended
+        if (amountOfSubsets!=null) {
+            if (extendedDeadlineChoice.equals("yes")) {
+                firstLine = randomizationForQuiz + "," + subsetsForQuiz + "," + amountOfSubsets + "*" + regularDeadline +
+                        ";" + extendedDeadline + ";" + chosenUsernames;
+            }
+            else {
+                firstLine = randomizationForQuiz + "," + subsetsForQuiz + "," + amountOfSubsets + "*" + regularDeadline;
+            }
+        }
+        else {
+            firstLine = randomizationForQuiz + ",*";
+        }
+        synchronized (gateKeeper) {
+            int counter = 0;
+            pw2.println(firstLine);
+            do {
+                String question = bfr.readLine();
+                String answer1 = bfr.readLine();
+                String answer2 = bfr.readLine();
+                String answer3 = bfr.readLine();
+                String answer4 = bfr.readLine();
+
+
+                pw2.println(question);
+                pw2.println(answer1);
+                pw2.println(answer2);
+                pw2.println(answer3);
+                pw2.println(answer4);
+                counter++;
+            } while (counter < amountOfQuestions);
+            pw2.close();
+        }
+    }
+
+}
