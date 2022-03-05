@@ -1,0 +1,81 @@
+import javax.swing.*;
+import java.util.ArrayList;
+import java.io.*;
+
+public class EditQuizServer {
+
+    /**
+     * EditQuiz.java
+     * <p>
+     * This class gets a file name from the main method and
+     * creates a Question array and saves it before the user
+     * edits a quiz. It also stores the number of questions
+     * that were in the quiz before the editing started. There
+     * are four methods in the class, EditQuiz(), listArray(),
+     * questionNumber(), yesNo().
+     *
+     * @author group #85
+     * @version November 15, 2021
+     */
+    private static Question[] questionList;
+    private static int qNum = 0;
+
+    public static void editQuizServerStart(ObjectInputStream ois, ObjectOutputStream oos, PrintWriter pw, BufferedReader bfr, Object gatekeeper) throws IOException, ClassNotFoundException {
+        String quizFileName = bfr.readLine();
+        BufferedReader bfr2 = new BufferedReader(new FileReader(quizFileName));
+        ArrayList<String> currentQuizContents = new ArrayList<>();
+        String line;
+        while ((line = bfr2.readLine()) != null) {
+            currentQuizContents.add(line);
+        }
+        String lineOne = currentQuizContents.get(0);
+
+
+        Question[] questionList = new Question[(currentQuizContents.size() / 5)];
+        int counter = 0;
+        for (int i = 1; i < currentQuizContents.size(); i += 5) {
+            questionList[counter] = new Question(currentQuizContents.get(i),
+                    currentQuizContents.get(i + 1),
+                    currentQuizContents.get(i + 2),
+                    currentQuizContents.get(i + 3),
+                    currentQuizContents.get(i + 4));
+            counter++;
+        }
+        oos.writeObject(questionList);//Writes Question[] to server
+        oos.flush();
+        File file = new File(quizFileName);
+        synchronized (gatekeeper) {
+            if (file.delete()) { //Deletes file so to write new one
+              
+            }
+            editQuizServerEditPortion(questionList, quizFileName, lineOne, ois, bfr);
+        }
+    }
+
+    public static void editQuizServerEditPortion(Question[] questionList, String quizName, String firstLine, ObjectInputStream ois, BufferedReader bfr) throws IOException, ClassNotFoundException {
+        PrintWriter quizFile = new PrintWriter(new FileOutputStream(quizName, true)); //Writes onto quiz file
+        quizFile.println(firstLine);
+        int counter = 0;
+        do {
+            JButton button = (JButton) ois.readObject();
+            String buttonCommand = button.getActionCommand();
+            if (buttonCommand.equals("Yes")) {
+                String newQuestion = bfr.readLine();
+                String newAnswerOne = bfr.readLine();
+                String newAnswerTwo = bfr.readLine();
+                String newAnswerThree = bfr.readLine();
+                String newAnswerFour = bfr.readLine();
+
+                quizFile.println(newQuestion);
+                quizFile.println(newAnswerOne);
+                quizFile.println(newAnswerTwo);
+                quizFile.println(newAnswerThree);
+                quizFile.println(newAnswerFour);
+            } else if (buttonCommand.equals("No")) {
+                quizFile.println(questionList[counter]);
+            }
+            counter++;
+        } while (counter < questionList.length);
+    }
+}
+
