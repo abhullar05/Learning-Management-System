@@ -1,0 +1,203 @@
+import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.*;
+/**
+ * EditQuizClient.java
+ *
+ * The EditQuizClient and Server classes both are used in 
+ * editing pre-existing quizzes.
+ *
+ * @author Team #85
+ *
+ * @version December 13, 2021
+ *
+ */
+
+public class EditQuizClient {
+    private static ObjectInputStream ois;
+    private static ObjectOutputStream oos;
+    private static PrintWriter pw;
+    private static BufferedReader bfr;
+    private static JFrame frame;
+    private static JPanel panel;
+    private static JPanel panelTwo;
+    private static JPanel panelThree;
+    private static String quizName;
+    private static int counter = 1;
+    private static Question[] questionObjectArray;
+
+    public static void editQuizStart(JFrame frame1, String courseName, ObjectOutputStream objectOutputStream,
+                                     ObjectInputStream objectInputStream, PrintWriter printWriter,
+                                     BufferedReader bufferedReader) throws IOException, ClassNotFoundException {
+        pw = printWriter;
+        ois = objectInputStream;
+        oos = objectOutputStream;
+        bfr = bufferedReader;
+        frame = frame1;
+        panel = new JPanel();
+        JLabel whichQuiz = new JLabel("Which quiz would you like to edit?");
+        JTextField quizNameField = new JTextField(10);
+        JButton enterButton = new JButton("Enter");
+
+
+        enterButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                quizName = quizNameField.getText();
+                pw.println(courseName + "_" + quizName + ".txt");//writes to Server for quizName
+                pw.flush();
+                try {
+                    Question[] questionObjectArray = (Question[]) ois.readObject();
+
+                    editQuizYesOrNoQuestion(questionObjectArray);
+                } catch (IOException | ClassNotFoundException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+        panel.add(whichQuiz);
+        panel.add(quizNameField);
+        panel.add(enterButton);
+        frame.getContentPane().removeAll();
+        frame.repaint();
+        frame.add(panel);
+        frame.setVisible(true);
+    }
+    public static void editQuizYesOrNoQuestion(Question[] questionObjectArray) throws IOException, ClassNotFoundException {
+        String[] questionArray = questionObjectArray[counter].toString().split("\n");
+        String question = questionArray[0];
+
+        panelTwo = new JPanel();
+        JLabel askQuestionEdit = new JLabel("Would you like to edit Question" + counter + ": " + question);
+        JButton yesButton = new JButton("Yes");
+        JButton noButton = new JButton("No");
+
+        yesButton.setActionCommand("Yes");
+        noButton.setActionCommand("No");
+
+        yesButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                counter++;
+                try {
+                    oos.writeObject(yesButton);
+                    oos.flush();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+                editAnsweredYesGui();
+                if (counter < questionObjectArray.length) {
+                    try {
+
+                        editQuizYesOrNoQuestion(questionObjectArray);
+                    } catch (IOException | ClassNotFoundException ex) {
+                        ex.printStackTrace();
+                    }
+                }
+                else if (counter == questionObjectArray.length) {
+
+                    //Add Return!!
+                }
+            }
+        });
+        noButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                counter++;
+                try {
+                    oos.writeObject(noButton);
+                    oos.flush();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+                if (counter< questionObjectArray.length) {
+                    try {
+
+                        editQuizYesOrNoQuestion(questionObjectArray);
+                    } catch (IOException | ClassNotFoundException ex) {
+                        ex.printStackTrace();
+                    }
+                }
+                else if (counter == questionObjectArray.length) {
+
+                    //Add Return!!
+                }
+            }
+        });
+        panelTwo.add(askQuestionEdit);
+        panelTwo.add(yesButton);
+        panelTwo.add(noButton);
+        frame.getContentPane().removeAll();
+        frame.repaint();
+        frame.add(panelTwo);
+        frame.setVisible(true);
+    }
+    public static void editAnsweredYesGui() {
+        panelThree = new JPanel();
+        JLabel enterNewQuestion = new JLabel("Enter new Question: ");
+        JTextField enterNewQuestionField = new JTextField(10);
+        JLabel enterNewAnswerOne = new JLabel("Enter new Answer 1:");
+        JTextField enterNewAnswerOneField = new JTextField(10);
+        JLabel enterNewAnswerTwo = new JLabel("Enter new Answer 2:");
+        JTextField enterNewAnswerTwoField = new JTextField(10);
+        JLabel enterNewAnswerThree = new JLabel("Enter new Answer 3:");
+        JTextField enterNewAnswerThreeField = new JTextField(10);
+        JLabel enterNewAnswerFour = new JLabel("Enter new Answer 4:");
+        JTextField enterNewAnswerFourField = new JTextField(10);
+        JButton enterButton = new JButton("Enter");
+
+
+
+
+        enterButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String newQuestion = enterNewQuestionField.getText();
+                String newAnswerOne = enterNewAnswerOneField.getText();
+                String newAnswerTwo = enterNewAnswerTwoField.getText();
+                String newAnswerThree = enterNewAnswerThreeField.getText();
+                String newAnswerFour = enterNewAnswerFourField.getText();
+
+                pw.println(newQuestion);
+                pw.flush();
+                pw.println(newAnswerOne);
+                pw.flush();
+                pw.println(newAnswerTwo);
+                pw.flush();
+                pw.println(newAnswerThree);
+                pw.flush();
+                pw.println(newAnswerFour);
+                pw.flush();
+                if (counter < questionObjectArray.length) {
+                    try {
+                        editQuizYesOrNoQuestion(questionObjectArray);
+                    } catch (IOException | ClassNotFoundException ex) {
+                        ex.printStackTrace();
+                    }
+                }
+                else if (counter == questionObjectArray.length){
+
+                    //Add Return!!
+                }
+
+            }
+        });
+        panelThree.add(enterNewQuestion);
+        panelThree.add(enterNewQuestionField);
+        panelThree.add(enterNewAnswerOne);
+        panelThree.add(enterNewAnswerOneField);
+        panelThree.add(enterNewAnswerTwo);
+        panelThree.add(enterNewAnswerTwoField);
+        panelThree.add(enterNewAnswerThree);
+        panelThree.add(enterNewAnswerThreeField);
+        panelThree.add(enterNewAnswerFour);
+        panelThree.add(enterNewAnswerFourField);
+        panelThree.add(enterButton);
+        frame.getContentPane().removeAll();
+        frame.repaint();
+        frame.add(panelThree);
+        frame.setVisible(true);
+    }
+}
+
