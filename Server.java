@@ -1,7 +1,17 @@
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-
+/**
+ * Server.java
+ *
+ *
+ * This class implements the Server, including the ServerSocket and the run method.
+ * The ServerSocket is set up in a main method along with the thread that starts
+ * the run method.
+ *
+ * @author group #85
+ * @version December 13, 2021
+ */
 public class Server implements Runnable {
     public Server(Socket socket){
         this.socket = socket;
@@ -9,18 +19,18 @@ public class Server implements Runnable {
     Socket socket; // Socket field
     public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = new ServerSocket(8000); // the server waits on port number : 8000 for clients to make connections
-        System.out.println("Waiting for the client to connect on port number : 8000");
+
         // infinite server loop which accepts connection and spawns thread for each new client connected
         while(true) {
             Socket socket = serverSocket.accept(); // a socket is formed when the client connects
-            System.out.println("Client connected!");
+
             Thread t = new Thread(new Server(socket)); // a thread is spawned
             t.start(); // thread starts execution
         }
     }
     // the run method contains everything to be implemented by the Threads
     public void run(){
-        System.out.printf("connection received from %s\n", socket);
+
 
         try{
             PrintWriter pw = new PrintWriter(socket.getOutputStream()); // open print writer to write to client
