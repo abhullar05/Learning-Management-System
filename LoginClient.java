@@ -4,6 +4,16 @@ import java.awt.event.ActionListener;
 import java.io.*;
 import java.util.ArrayList;
 
+/**
+ * LoginClient.java
+ *
+ *
+ * LoginClient.java is the client portion of the login and create
+ * account process.
+ *
+ * @author group #85
+ * @version December 13, 2021
+ */
 
 public class LoginClient {
     private static PrintWriter pw; // to write to server
@@ -18,7 +28,7 @@ public class LoginClient {
 
     public static void main(String[] args) throws IOException, ClassNotFoundException {
         LoginClient loginClient = new LoginClient(frame, pw, bfr, oos, ois); // calls loginClient to handle login related GUIs
-        loginClient.loginOrCreateAccountClient();
+        loginClient.loginOrCreateAccountClient(loginClient);
     }
 
     public LoginClient(JFrame frame, PrintWriter pw, BufferedReader bfr, ObjectOutputStream oos, ObjectInputStream ois) {
@@ -30,20 +40,20 @@ public class LoginClient {
     }
 
     // this method is called in the main method of Client and handles login and create account GUIs
-    public static void loginOrCreateAccountClient() throws IOException, ClassNotFoundException {
+    public static void loginOrCreateAccountClient(LoginClient loginClient) throws IOException, ClassNotFoundException {
         // displays the login / create account dialog and stores the option selected
 
-            showAccountOptionsDialog();
+        showAccountOptionsDialog(loginClient);
     }
 
     // this method displays the options to create an account and login
-    public static void showAccountOptionsDialog() {
-                addCreateAccountLoginButtons(); // creates and adds create account and sign in buttons
+    public static void showAccountOptionsDialog(LoginClient loginClient) {
+        addCreateAccountLoginButtons(loginClient); // creates and adds create account and sign in buttons
 
     }
 
     // creates and adds create account and sign in buttons
-    public static void addCreateAccountLoginButtons() {
+    public static void addCreateAccountLoginButtons(LoginClient loginClient) {
         panel2 = new JPanel();
         JLabel welcomeMessage = new JLabel("Welcome to the Learning Management System."); // displays welcome message
         JButton createAccountButton = new JButton("Create a new account"); // to create a new account
@@ -56,7 +66,7 @@ public class LoginClient {
                 try {
                     oos.writeObject(createAccountButton);
                     oos.flush();
-                    showCreateAccountDialog();
+                    showCreateAccountDialog(loginClient);
                 } catch (ClassNotFoundException ex) {
                     ex.printStackTrace();
                 } catch (IOException ex) {
@@ -70,7 +80,7 @@ public class LoginClient {
                 try {
                     oos.writeObject(loginButton);
                     oos.flush();
-                    showLoginDialog();
+                    showLoginDialog(loginClient);
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
@@ -172,7 +182,7 @@ public class LoginClient {
 
 
     // this method will display dialog to enter username, password and select role;
-    public static void showCreateAccountDialog() throws ClassNotFoundException, IOException {
+    public static void showCreateAccountDialog(LoginClient loginClient) throws ClassNotFoundException, IOException {
         panel1 = new JPanel(); // this JPanel will contain all things to be displayed by the method
         panel1.setSize(100, 600);
         JLabel usernamePrompt = new JLabel("Please enter a username");
@@ -186,11 +196,11 @@ public class LoginClient {
         studentButton.setActionCommand("Student"); // setting action command for communication with server
         JButton continueButton = new JButton("continue");
         continueButton.setActionCommand("continue"); // setting action command for communication with server
-        System.out.println("initialized");
+
         teacherButton.addActionListener(new ActionListener() { // listens for teacher button and stores "teacher" in static variable role
             @Override
             public void actionPerformed(ActionEvent e) {
-                System.out.println("teacher button was pressed");
+
                 role = "teacher";
             }
         });
@@ -204,11 +214,10 @@ public class LoginClient {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String username = ""; // this local variable store username
-                System.out.println("in action performed");
+
 
                 try {
                     username = isUsernameValid(usernameText); // checking if username is valid
-                    System.out.println("username validated");
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 } catch (ClassNotFoundException ex) {
@@ -216,15 +225,13 @@ public class LoginClient {
                 }
 
                 String password = isPasswordValid(passwordText); // stores password
-                System.out.println("Password stored");
-                System.out.println(role);
+
                 while (role == null){
 
                 }
-                System.out.println(role);
-                System.out.println("role is not null now");
+
                 writeUsernamePasswordRole(username, password); // sends the username, password, role to server while creating account
-                addButtons(); // shows the option edit, delete account, continue, return to main menu
+                addButtons(loginClient); // shows the option edit, delete account, continue, return to main menu
 
             }
         });
@@ -249,10 +256,10 @@ public class LoginClient {
         String input;
 
         ArrayList<String> usernames = (ArrayList<String>) ois.readObject(); // reads the String[] which contains list of courses from server
-        System.out.println("entered isUsernameValid method and read usernames arrayList");
+
 
         do {
-            System.out.println("entered while loop");
+
             input = usernameText.getText(); // gets input fromm text field
             if (input.isEmpty()) { // shows error message dialog if username is empty
                 JOptionPane.showMessageDialog(null, "username cannot be empty", "Username", JOptionPane.ERROR_MESSAGE);
@@ -263,7 +270,7 @@ public class LoginClient {
             }
         } while (input.isEmpty() || input.contains(" ") || usernames.contains(input)); // loops back and asks for username again when error message is thrown
 
-        System.out.println("done with while loop");
+
         return input;
 
     }
@@ -285,10 +292,10 @@ public class LoginClient {
         return input2;
     }
 
-// writes username, password and role to server while creating a new account
+    // writes username, password and role to server while creating a new account
     public static void writeUsernamePasswordRole(String username, String password) {
         pw.println(username);
-        System.out.println(username);
+
         pw.flush();
         pw.println(password);
         pw.flush();
@@ -296,7 +303,7 @@ public class LoginClient {
         pw.flush();
     }
     // shows the dialog for login
-    public static void showLoginDialog(){
+    public static void showLoginDialog(LoginClient loginClient){
         panel1 = new JPanel(); // this JPanel will contain all things to be displayed by the method
         panel1.setSize(100, 600);
         JLabel usernamePrompt = new JLabel("Please enter your username");
@@ -309,43 +316,43 @@ public class LoginClient {
         loginButton.addActionListener(new ActionListener() { // listens for login button
             @Override
             public void actionPerformed(ActionEvent e) {
-                System.out.println("login button action listener entered");
-                    // the code below checks to see whether an account with the provided login details exists
+
+                // the code below checks to see whether an account with the provided login details exists
                 ArrayList<String> usernames = new ArrayList<>();
                 ArrayList<String> passwords = new ArrayList<>();
-                System.out.println("ArrayLists created");
-                    try {
-                        usernames = (ArrayList<String>) ois.readObject(); // reads the ArrayList<String> which contains list of usernames from server
-                        System.out.println("usernames read");
-                        passwords = (ArrayList<String>) ois.readObject(); // reads the ArrayList<String> which contains list of passwords from server
-                    } catch (IOException ex) {
-                        ex.printStackTrace();
-                    } catch (ClassNotFoundException ex) {
-                        ex.printStackTrace();
-                    }
+
+                try {
+                    usernames = (ArrayList<String>) ois.readObject(); // reads the ArrayList<String> which contains list of usernames from server
+
+                    passwords = (ArrayList<String>) ois.readObject(); // reads the ArrayList<String> which contains list of passwords from server
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                } catch (ClassNotFoundException ex) {
+                    ex.printStackTrace();
+                }
                 String usernameInput;
 
                 String passwordInput;
 
                 boolean detailsVerified = false; // tells if user details have been verified
 
-                    usernameInput = usernameText.getText(); // gets the username input
-                    passwordInput = passwordText.getText(); // gets the password input
-                    try {
-                        detailsVerified = verifyLoginDetails(usernameInput, passwordInput, usernames, passwords);
-                        oos.writeObject(detailsVerified);
-                        oos.flush();
-                        System.out.println(detailsVerified);
-                    } catch (IOException ex) {
-                        ex.printStackTrace();
-                    } catch (ClassNotFoundException ex) {
-                        ex.printStackTrace();
-                    }
+                usernameInput = usernameText.getText(); // gets the username input
+                passwordInput = passwordText.getText(); // gets the password input
+                try {
+                    detailsVerified = verifyLoginDetails(usernameInput, passwordInput, usernames, passwords);
+                    oos.writeObject(detailsVerified);
+                    oos.flush();
+
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                } catch (ClassNotFoundException ex) {
+                    ex.printStackTrace();
+                }
 
 
                 if(detailsVerified) {
                     writeUsernamePasswordLogin(usernameInput, passwordInput);
-                    addButtons();
+                    addButtons(loginClient);
                 }
 
 
@@ -386,13 +393,13 @@ public class LoginClient {
         pw.flush();
     }
     // this method displays the GUI with continue, edit account, delete account ,and return to main menu button
-    public static void showAccountEditOptionsDialog(){
+    public static void showAccountEditOptionsDialog(LoginClient loginClient){
         // so that the GUI runs on EDT
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
                 panel1 = new JPanel();// creates the JPanel which will contain edit, continue, delete, return to main menu buttons and will be added to the top level panel
-                addButtons(); // creates and adds edit, continue, delete, return to main menu buttons to the panel
+                addButtons(loginClient); // creates and adds edit, continue, delete, return to main menu buttons to the panel
                 frame.getContentPane().removeAll(); // removes whatever was there previously
                 frame.repaint(); // so that JFrame does not freeze
                 frame.add(panel1); // adding the JPanel created
@@ -400,8 +407,8 @@ public class LoginClient {
             }
         });
     }
-// this method will display continue, edit account, delete account and return to main menu buttons
-    public static void addButtons(){
+    // this method will display continue, edit account, delete account and return to main menu buttons
+    public static void addButtons(LoginClient loginClient){
         panel1 = new JPanel(); // this panel will contain continue, edit account, delete account and return to main menu buttons
         JButton continueButton = new JButton("CONTINUE"); // continues
         JButton editButton = new JButton("EDIT ACCOUNT"); // edits account
@@ -472,6 +479,23 @@ public class LoginClient {
                 }
                 frame.getContentPane().removeAll(); // removes everything from the JFrame so that next step can happen
                 frame.repaint(); // so that JFrame does not freeze
+
+                try {
+                    String userRole = bfr.readLine();
+                    if(userRole.equals("student")){
+                        StudentClient.startOfStudentGUI(frame, loginClient, oos, ois, pw, bfr, panel1);
+
+                          //  frame.getContentPane().removeAll(); // clears the frame
+                          //  frame.repaint(); // so that JFrame does not freeze
+                          //  frame.add(panel2); // adds the panel2 containing login and create account buttons
+                          //  frame.setVisible(true); // makes the changes visible
+
+                    } else if(userRole.equals("teacher")){
+                        TeacherContinueClient.showTeacherContinueGUI(frame, pw, ois, oos, bfr);
+                    }
+                } catch (IOException | ClassNotFoundException ex) {
+                    ex.printStackTrace();
+                }
             }
         });
 // adds continue, edit account, delete account and return to main menu buttons to the panel
@@ -490,7 +514,7 @@ public class LoginClient {
     // this method edits the username when edit username button is clicked
     public static void showEditUsernameDialog() throws IOException, ClassNotFoundException {
         ArrayList<String> usernames = (ArrayList<String>) ois.readObject(); // reads the ArrayList of string which contains list of usernames from server
-        System.out.println(usernames.get(0));
+
         String input; // this variable stores input for username while editing the account
         do {
             // takes the input for username
@@ -556,4 +580,3 @@ public class LoginClient {
 
 
 }
-
