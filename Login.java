@@ -2,7 +2,15 @@ import javax.swing.*;
 
 import java.io.*;
 import java.util.ArrayList;
-
+/**
+ * Login.java
+ *
+ *
+ * Login.java is the foundation of the login and create account process. 
+ *
+ * @author group #85
+ * @version December 13, 2021
+ */
 public class Login {
 
     private String username; // username of the user
@@ -123,13 +131,21 @@ public class Login {
 
 
     // this method handles the server side processing for the GUI with continue, edit account, delete account ,and return to main menu button displayed by client
-    public static void showAccountOptionsDialog(Login login, ObjectInputStream ois, ObjectOutputStream oos, BufferedReader bfr) throws IOException, ClassNotFoundException {
+    public static void showAccountOptionsDialog(Login login, ObjectInputStream ois, ObjectOutputStream oos, BufferedReader bfr, PrintWriter pw) throws IOException, ClassNotFoundException {
         String buttonCommand;
         do {
             JButton button = (JButton) ois.readObject(); // reads the button selected(continue, edit account, delete account or return to main menu)
             buttonCommand = button.getActionCommand(); // gets the action command for button selected
 
             if (buttonCommand.equals("continue")) { // processing if user clicks continue button
+                String userRole = login.role;
+                pw.println(userRole);
+                pw.flush();
+                if(userRole.equals("student")) {
+                    StudentServer.studentServer(ois, bfr, oos, pw, login, gatekeeper);
+                } else if(userRole.equals("teacher")){
+                    TeacherContinue.teacherContinue( ois, oos, bfr, pw, gatekeeper);
+                }
 
             } else if (buttonCommand.equals("edit account")) {
                 showEditAccountOptionsDialog(login, ois, oos, bfr); // handles the server side processing for GUI which gives the user options to edit username, password or account type
@@ -178,7 +194,7 @@ public class Login {
         synchronized (gatekeeper) {
             usernames.set(index, login.username); // changes username in the usernames ArrayList
         }
-        System.out.println(login.username);
+
         try { // writes the updated username to the file by rewriting all the details
             synchronized (gatekeeper) {
                 PrintWriter pw = new PrintWriter(new FileOutputStream("UserDetails.txt"));
@@ -190,7 +206,7 @@ public class Login {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        System.out.println("Your username has been changed successfully");
+
     }
 
     //this method edits the role when edit role button is clicked
@@ -216,7 +232,7 @@ public class Login {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        System.out.println( "Your account type has been changed successfully");
+
     }
     // this method displays the edit account options :  edit username, edit password, edit account type
     public static void showEditAccountOptionsDialog (Login login, ObjectInputStream ois, ObjectOutputStream oos, BufferedReader bfr) throws IOException, ClassNotFoundException {
@@ -228,7 +244,7 @@ public class Login {
             if (buttonCommand.equals("edit username")) { // calls the edit username method to edit the username
                 oos.writeObject(usernames);// sends arrayList of usernames to client
                 oos.flush();
-                System.out.println(usernames.get(0));
+
                 String usernameInput = bfr.readLine(); // gets username input from server
                 editUsername(login, usernameInput);
             } else if (buttonCommand.equals("edit password")) { // calls the edit password method to edit the password
@@ -263,10 +279,11 @@ public class Login {
             e.printStackTrace();
         }
         // account deleted message displayed
-        System.out.println( "Your account has been deleted successfully");
+
     }
     // this method handles most of the login and create account stuff in the server
     public static Login loginOrCreateAccountServer(PrintWriter pw, BufferedReader bfr, ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException, EOFException {
+
         Login login = null; // Login object to be returned
         // checks if there exists any user details file and reads it, if a user details file does not exist then creates one.
         readUserDetails();
@@ -280,40 +297,40 @@ public class Login {
         if (loginOrCreateAccountButtonCommand.equals("Create a new account")) {
             oos.writeObject(usernames);// writes usernames array list to client
             oos.flush();
-            System.out.println("written usernames arrayList to client");
+
             String usernameInput = bfr.readLine(); // reads username input from client
             String passwordInput = bfr.readLine(); // reads password input from client
             String roleInput = bfr.readLine(); // reads password input from client
             login = new Login(usernameInput, passwordInput, roleInput); // Login object created using Login constructor
-            System.out.println("Congratulations new account successfully created !");
+
             // Client shows the edit, delete, continue, return to main menu options
-            showAccountOptionsDialog(login, ois, oos, bfr);
+            showAccountOptionsDialog(login, ois, oos, bfr, pw);
+
 
             return login;
 
         }
         // if the user selects login option, the user details are verified
         else if (loginOrCreateAccountButtonCommand.equals("Login")) {
-            System.out.println("entered login");
+
             boolean detailsVerified;
             do {
-                System.out.println("entered do while");
+
                 oos.writeObject(usernames);
                 oos.flush();
-                System.out.println("written usernames");
+
                 oos.writeObject(passwords);
                 oos.flush();
-                System.out.println("written passwords");
+
                 detailsVerified = (boolean) ois.readObject();
-                System.out.println(!detailsVerified);
             } while (!detailsVerified);
 
             String input = bfr.readLine();// contains username entered while logging in
             String input2 = bfr.readLine();// contains password entered while logging in
             // the line below creates a Login object
             login = new Login(input, input2);
-            System.out.println("Login successful");
-            showAccountOptionsDialog(login, ois, oos, bfr); // shows the edit, delete, continue, return to main menu options
+
+            showAccountOptionsDialog(login, ois, oos, bfr, pw); // shows the edit, delete, continue, return to main menu options
 
             return login;
 
