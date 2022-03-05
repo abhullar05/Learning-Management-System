@@ -1,0 +1,265 @@
+import javax.swing.*;
+import java.io.*;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Random;
+/**
+ * StudentServer.java
+ *
+ *
+ * The StudentClient and Server classes contain the code for using the
+ * student role, including taking quizzes and viewing graded submissions.
+ *
+ * @author group #85
+ * @version December 13, 2021
+ */
+public class StudentServer {
+
+
+
+    public static void studentServer(ObjectInputStream ois, BufferedReader bfr, ObjectOutputStream oos, PrintWriter pw, Login login, Object gatekeeper) throws IOException, ClassNotFoundException {
+        boolean loop = false;
+
+            String[] courses = CoursesReturn();
+            oos.writeObject(courses);
+            do{
+                JButton button = (JButton) ois.readObject();
+                String buttonActionCommand = button.getActionCommand();
+                if (buttonActionCommand.equals("enter")) {
+                String courseSelected = bfr.readLine();
+                loop = quizMenuStudent(ois, login, courseSelected, pw, bfr, oos, gatekeeper);
+
+                } else if(buttonActionCommand.equals("return to main menu")){
+                    login.setUsername(null);
+                    login.setPassword(null);
+                    login.setRole(null);
+                }
+            }while(loop);
+
+    }
+    // this method handles the server side processing for the GUI which displays to the student the options to take a quiz, grade a quiz and return to main menu
+    public static boolean quizMenuStudent(ObjectInputStream ois, Login login, String courseSelected, PrintWriter pw, BufferedReader bfr, ObjectOutputStream oos, Object gatekeeper) throws IOException, ClassNotFoundException {
+        Boolean loop2;
+        do {
+            loop2 = false;
+            JButton button = (JButton) ois.readObject();
+            String buttonActionCommand = button.getActionCommand();
+            if (buttonActionCommand.equals("take quiz")) {
+                loop2 = takeQuizAction( courseSelected, login, oos, ois, bfr, gatekeeper);
+
+            } else if (buttonActionCommand.equals("grade quiz")) {
+                loop2 = gradeQuizAction(login, courseSelected, ois, pw, bfr, oos, gatekeeper);
+
+            } else if (buttonActionCommand.equals("return to main menu")) {
+                return true;
+            }
+        }while(loop2);
+        return false;
+
+    }
+
+    public static boolean gradeQuizAction(Login login, String courseSelected, ObjectInputStream ois, PrintWriter pw, BufferedReader bfr, ObjectOutputStream oos, Object gatekeeper) throws IOException, ClassNotFoundException {
+        JButton button = (JButton) ois.readObject();
+        String buttonActionCommand = button.getActionCommand();
+        if(buttonActionCommand.equals("enter quiz button for graded quiz")){
+            String username = login.getUsername();
+            pw.println(username);
+            pw.flush();
+            String quizSelected = bfr.readLine();
+            gradeQuiz(courseSelected, quizSelected, login, pw, oos, gatekeeper);
+            JButton button1 = (JButton) ois.readObject();
+            String button1ActionCommand = button1.getActionCommand();
+            if(button1ActionCommand.equals("return to quiz menu")){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static void gradeQuiz(String courseSelected, String quizSelected, Login login, PrintWriter pw, ObjectOutputStream oos, Object gatekeeper){
+
+        String gradedQuizString = Student.gradeQuiz(quizSelected + ".txt", login.getUsername(), courseSelected, gatekeeper);
+        String[] totalScoreSplit = gradedQuizString.split("Total Score:");
+        String totalScoreString = totalScoreSplit[1];
+
+        ArrayList<String> arrayListForReadingGradedLines = new ArrayList<>();
+        try {
+            BufferedReader bfrTwo = new BufferedReader(new FileReader(courseSelected + "_" + login.getUsername() +
+                    "_" + quizSelected + ".txt" +
+                    "_gradedanswersheet"));
+            bfrTwo.readLine();
+            String gradedQuestion = bfrTwo.readLine();
+            String gradedAnswer = bfrTwo.readLine();
+            String gradedScore = bfrTwo.readLine();
+            while (gradedAnswer != null && gradedQuestion != null && gradedScore != null) {
+                arrayListForReadingGradedLines.add(gradedQuestion);
+                arrayListForReadingGradedLines.add(gradedAnswer);
+                arrayListForReadingGradedLines.add(gradedScore);
+                bfrTwo.readLine();
+                gradedQuestion = bfrTwo.readLine();
+                gradedAnswer = bfrTwo.readLine();
+                gradedScore = bfrTwo.readLine();
+            }
+            bfrTwo.close();
+        } catch (IOException e1) {
+            e1.printStackTrace();
+        }
+
+        String[][] graded2dArray = new String[arrayListForReadingGradedLines.size() / 3][3];
+        int counter2 = 0;
+        int counter = 0;
+        for (int i = 0; i < arrayListForReadingGradedLines.size() / 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                graded2dArray[i][j] = arrayListForReadingGradedLines.get(counter);
+
+                counter++;
+            }
+        }
+        counter = 0;
+        counter2 = 0;
+        // new
+
+        pw.println(totalScoreString);
+        pw.flush();
+        // new
+
+        try {
+            oos.writeObject(graded2dArray);
+            oos.flush();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    public static boolean takeQuizAction(String courseSelected, Login login, ObjectOutputStream oos, ObjectInputStream ois, BufferedReader bfr, Object gatekeeper) throws IOException, ClassNotFoundException {
+        JButton button = (JButton) ois.readObject();
+        String buttonActionCommand = button.getActionCommand();
+        String quizName = null;
+        if(buttonActionCommand.equals("enter quiz button")){
+            quizName = bfr.readLine();
+            ArrayList<String> lines = Randomization.readQuiz(quizName, courseSelected);
+            oos.writeObject(lines);
+            oos.flush();
+            String[] questionArray;
+            // checked the code
+            String YesNoAndDeadline = "";
+            try {
+                String fileName = courseSelected + "_" + quizName + ".txt";
+                BufferedReader bufferedReader = new BufferedReader(new FileReader(fileName));
+                YesNoAndDeadline = bufferedReader.readLine();
+                bufferedReader.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            String[] YesNoAndDeadlineSplit = YesNoAndDeadline.split("\\*");
+            int timeLimit=0;
+            if (YesNoAndDeadlineSplit[0].contains(";")) {
+                String[] deadlineAndNamesSplit =
+                        YesNoAndDeadlineSplit[1].split(";");
+                String[] namesSplit =
+                        deadlineAndNamesSplit[2].split(",");
+                timeLimit = Integer.parseInt(deadlineAndNamesSplit[0]);
+                int extendedTime = Integer.parseInt(deadlineAndNamesSplit[1]);
+                for (int i = 0; i < namesSplit.length; i++) {
+                    if (login.getUsername().equals(namesSplit[i])) {
+                        timeLimit += extendedTime;
+                    }
+                }
+            }
+
+
+            String[] yesNoItems = YesNoAndDeadlineSplit[0].split(",");
+            if (yesNoItems[0].equals("yes")) {
+                if (yesNoItems[1].equals("yes")) {
+                    int subsetAmount = Integer.parseInt(yesNoItems[3]);
+                    Question[] randomQuestionsAndOptions = Randomization.getRandomSubsetOfQuestions(quizName, courseSelected, subsetAmount);
+                    questionArray = new String[randomQuestionsAndOptions.length];
+                    String[][] options = new String[randomQuestionsAndOptions.length][3];
+                    for (int i = 0; i < randomQuestionsAndOptions.length; i++) {
+                        String[] questionsAndOptions = randomQuestionsAndOptions[i].toString().split("\n");
+                        questionArray[i] = questionsAndOptions[0];
+                        options[i][0] = questionsAndOptions[1];
+                        options[i][1] = questionsAndOptions[2];
+                        options[i][2] = questionsAndOptions[3];
+                        options[i][3] = questionsAndOptions[4];
+                    }
+                    oos.writeObject(questionArray);
+                    oos.flush();
+                    oos.writeObject(options);
+                    oos.flush();
+                }
+                else {
+                    //For Randomization Only
+                    Question[] randomQuestionsAndOptions = Randomization.randomizeTheQuiz(quizName, courseSelected);
+                    questionArray = new String[randomQuestionsAndOptions.length];
+                    String[][] options = new String[randomQuestionsAndOptions.length][3];
+                    for (int i = 0; i < randomQuestionsAndOptions.length; i++) {
+                        String[] questionsAndOptions = randomQuestionsAndOptions[i].toString().split("\n");
+                        questionArray[i] = questionsAndOptions[0];
+                        options[i][0] = questionsAndOptions[1];
+                        options[i][1] = questionsAndOptions[2];
+                        options[i][2] = questionsAndOptions[3];
+                        options[i][3] = questionsAndOptions[4];
+                    }
+                    oos.writeObject(questionArray);
+                    oos.flush();
+                    oos.writeObject(options);
+                    oos.flush();
+                }
+            }
+            else {
+                //Code that Advit wrote for no, no
+
+                questionArray = Randomization.getQuestions(lines);
+                oos.writeObject(questionArray);
+                oos.flush();
+                String[][] options = Randomization.getOptions(lines);
+                oos.writeObject(options);
+                oos.flush();
+            }
+            // checked the code
+            //new
+            int number = 0; // counts the number of times question and answer has been read by server
+            do {
+                answerAction(courseSelected, login.getUsername(), quizName, bfr, gatekeeper);
+                number++;
+            } while(number < questionArray.length);
+
+            return true;
+        }
+        return false;
+
+    }
+
+
+    public static String[] CoursesReturn() throws IOException {
+        ArrayList<String> courses = new ArrayList<>();
+        BufferedReader bfr = new BufferedReader(new FileReader("CourseList.txt"));
+        String line = bfr.readLine();
+        while (line != null) {
+            courses.add(line);
+            line = bfr.readLine();
+        }
+        bfr.close();
+        String[] coursesArray = new String[courses.size()]; //Creates a new array that initializes
+        // with the same size as the arraylist
+        coursesArray = courses.toArray(coursesArray); //Copies the arraylist into the array
+        return coursesArray;
+    }
+
+    //new
+    public static void answerAction(String courseSelected, String username, String quizName, BufferedReader bfr, Object gatekeeper) throws IOException {
+        String currentQuestion = bfr.readLine();
+        String answerSelected = bfr.readLine();
+        PrintWriter pw2 = new PrintWriter(
+                new FileOutputStream(courseSelected + "_" + username + "_" + quizName
+                        + "_answersheet", true));
+        synchronized (gatekeeper) {
+            pw2.println(currentQuestion);
+            pw2.println(answerSelected);
+        }
+        pw2.close();
+    }
+    //new
+}
