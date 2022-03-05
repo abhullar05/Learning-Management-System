@@ -1,0 +1,110 @@
+import javax.swing.*;
+import java.io.*;
+/**
+ * GradeAnswerKeyServer.java
+ *
+ *
+ * The GradeAnswerKeyClient and Server classes are used in creating
+ * graded answer keys for quizzes.
+ *
+ * @author group #85
+ * @version December 13, 2021
+ */
+public class GradeAnswerKeyServer {
+    private static ObjectInputStream ois;
+    private static ObjectOutputStream oos;
+    private static PrintWriter pw;
+    private static BufferedReader bfr;
+    public static void grade(ObjectOutputStream objectOutputStream, ObjectInputStream objectInputStream, PrintWriter printWriter, BufferedReader bufferedReader, Object gatekeeper) throws IOException, ClassNotFoundException {
+        pw = printWriter;
+        ois = objectInputStream;
+        oos = objectOutputStream;
+        bfr = bufferedReader;
+        String course = bfr.readLine();
+
+        String quizChosen = bfr.readLine();
+        int counter = 0;
+        boolean loop;
+        do{
+            Question[] questions = Student.readQuiz(course + "_" + quizChosen + ".txt");
+            String[] arr = questions[counter].toString().split("\n");
+            oos.writeObject(questions); // Supposed to write to GradeAnswerkeyClient @ line 40
+            oos.flush();
+
+
+
+            JButton button = (JButton) ois.readObject(); // reads the button selected(continue, edit account, delete account or return to main menu)
+            String buttonCommand = button.getActionCommand();
+            if (buttonCommand.equals("answerOne")) {
+                try {
+                    PrintWriter printWriter1 = new PrintWriter(new FileOutputStream(
+                            course + "_" + quizChosen + "_answerkey", true));
+                    synchronized (gatekeeper) {
+                        printWriter1.println(arr[0] + "\n" + arr[1]);
+                    }
+                    printWriter1.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } else if (buttonCommand.equals("answerTwo")) {
+                try {
+                    PrintWriter printWriter1 = new PrintWriter(new FileOutputStream(
+                            course + "_" + quizChosen + "_answerkey", true));
+                    synchronized (gatekeeper) {
+                        printWriter1.println(arr[0] + "\n" + arr[2]);
+                    }
+                    printWriter1.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } else if (buttonCommand.equals("answerThree")) {
+                try {
+                    PrintWriter printWriter1 = new PrintWriter(new FileOutputStream(
+                            course + "_" + quizChosen + "_answerkey", true));
+                    synchronized (gatekeeper) {
+                        printWriter1.println(arr[0] + "\n" + arr[3]);
+                    }
+                    printWriter1.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } else if (buttonCommand.equals("answerFour")) {
+                try {
+                    PrintWriter printWriter1 = new PrintWriter(new FileOutputStream(
+                            course + "_" + quizChosen + "_answerkey", true));
+                    synchronized (gatekeeper) {
+                        printWriter1.println(arr[0] + "\n" + arr[4]);
+                    }
+                    printWriter1.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            counter++;
+            loop = choosePoints(course, counter, quizChosen,oos, ois, pw, bfr, questions, gatekeeper);
+        }while(loop);
+    }
+
+    public static boolean choosePoints(String course, int counter, String quizChosen, ObjectOutputStream oos, ObjectInputStream ois, PrintWriter pw, BufferedReader bfr, Question[] questions, Object gatekeeper)
+            throws IOException, ClassNotFoundException {
+        int answerValue = Integer.parseInt(bfr.readLine()); // Supposed to read from GradeAnswerKeyClient.java @ line 137
+        try {
+            PrintWriter pw2 = new PrintWriter(new FileOutputStream(
+                    course + "_" +
+                            quizChosen + "_answerkey", true));
+            synchronized (gatekeeper) {
+                pw2.println("+ " + answerValue);
+            }
+            pw2.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (counter < questions.length){
+
+        } else if(counter== questions.length){
+            return true;
+        }
+        return false;
+    }
+}
+
