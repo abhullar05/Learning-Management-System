@@ -1,0 +1,180 @@
+import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.*;
+/**
+ * GradeAnswerKeyClient.java
+ *
+ *
+ * The GradeAnswerKeyClient and Server classes are used in creating
+ * graded answer keys for quizzes.
+ *
+ * @author group #85
+ * @version December 13, 2021
+ */
+
+public class GradeAnswerKeyClient {
+    private static ObjectInputStream ois;
+    private static ObjectOutputStream oos;
+    private static PrintWriter pw;
+    private static BufferedReader bfr;
+    private static JPanel panel;
+    private static int counter;
+    private static String[] questionAndAnswer;
+    private static String[] questionArray;
+    private static JFrame frame;
+    private static JPanel panelTwo;
+    private static JPanel panelThree;
+    private static String courseSelected;
+    // called in TeacherContinueClient
+    public static void createAnswerKey(JFrame frame1, ObjectOutputStream objectOutputStream, ObjectInputStream objectInputStream, PrintWriter printWriter, BufferedReader bufferedReader, String courseName){
+        frame = frame1;
+        pw = printWriter;
+        ois = objectInputStream;
+        oos = objectOutputStream;
+        bfr = bufferedReader;
+        courseSelected = courseName;
+        pw.println(courseSelected);
+        pw.flush();
+
+        panel = new JPanel();
+        JLabel quizNamePrompt = new JLabel("Please enter the quiz name:");
+        JTextField textFieldQuizName = new JTextField(8);
+        JButton enterButton = new JButton("Enter");
+        enterButton.setActionCommand("enter button");
+
+
+
+        enterButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String quizChosen = textFieldQuizName.getText();
+                pw.println(quizChosen);
+                pw.flush();
+                try {
+                    gradeQuiz();
+                } catch (IOException | ClassNotFoundException ex) {
+                    ex.printStackTrace();
+                }
+
+            }
+        });
+        panel.add(quizNamePrompt);
+        panel.add(textFieldQuizName);
+        panel.add(enterButton);
+        frame.getContentPane().removeAll();
+        frame.repaint();
+        frame.add(panel);
+        frame.setVisible(true);
+    }
+    public static void gradeQuiz() throws IOException, ClassNotFoundException {
+        panelTwo = new JPanel();
+        JLabel whichQuestion = new JLabel("Which answer is correct?");
+        String[] questionArray = (String[]) ois.readObject(); // Supposed to read from GradeAnswerKeyServer.java @ line 12
+        String[] questionAndAnswer = questionArray[counter].split("\n");
+        JLabel question = new JLabel(questionAndAnswer[0]);
+        JButton answerOne = new JButton(questionAndAnswer[1]);
+        JButton answerTwo = new JButton(questionAndAnswer[2]);
+        JButton answerThree = new JButton(questionAndAnswer[3]);
+        JButton answerFour = new JButton(questionAndAnswer[4]);
+        answerOne.setActionCommand("answerOne");
+        answerTwo.setActionCommand("answerTwo");
+        answerThree.setActionCommand("answerThree");
+        answerFour.setActionCommand("answerFour");
+        answerOne.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    oos.writeObject(answerOne);
+                    oos.flush();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+                counter++;
+                choosePointGUI();
+            }
+        });
+        answerTwo.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    oos.writeObject(answerTwo);
+                    oos.flush();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+
+                counter++;
+                choosePointGUI();
+            }
+        });
+        answerThree.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    oos.writeObject(answerThree);
+                    oos.flush();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+                counter++;
+                choosePointGUI();
+            }
+        });
+        answerFour.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    oos.writeObject(answerFour);
+                    oos.flush();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+                counter++;
+                choosePointGUI();
+            }
+        });
+        panelTwo.add(whichQuestion);
+        panelTwo.add(question);
+        panelTwo.add(answerOne);
+        panelTwo.add(answerTwo);
+        panelTwo.add(answerThree);
+        panelTwo.add(answerFour);
+        frame.getContentPane().removeAll();
+        frame.repaint();
+        frame.add(panelTwo);
+        frame.setVisible(true);
+    }
+
+    public static void choosePointGUI(){
+        panelThree = new JPanel();
+        JLabel howManyPoints = new JLabel("How many points is this question worth?");
+        JTextField pointsField = new JTextField(10);
+        JButton enterButton = new JButton("Enter");
+
+
+        enterButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                pw.println(pointsField.getText());  //Supposed to write to GradeAnswerKeyServer.java @ line 61
+                pw.flush();
+                if (counter < questionArray.length){
+                    try {
+                        gradeQuiz();
+                    } catch (IOException | ClassNotFoundException ex) {
+                        ex.printStackTrace();
+                    }
+                } else if (counter== questionArray.length){
+                    //end
+                }
+            }
+        });
+        panel.add(enterButton);
+        panel.add(pointsField);
+        panel.add(howManyPoints);
+        frame.getContentPane().removeAll();
+        frame.repaint();
+        frame.add(panelThree);
+        frame.setVisible(true);
+    }
+}
