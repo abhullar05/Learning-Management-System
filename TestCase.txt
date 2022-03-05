@@ -1,0 +1,57 @@
+Test 1: User log in
+Steps:
+1. User launches application
+2. User selects the username textbox.
+3. User enters username via the keyboard.
+4. User selects the password textbox.
+5. User selects the "Log in" button.
+Expected result: Application verifies the user's username and password. After which, the user is taken to next page where he/she is given option to continue/edit account/delete account/return to main menu.
+
+Test Status: Passed
+
+Test 2: Create a new account
+Steps:
+1. User launches application.
+2. User selects the username textbox.
+3. User enters username via the keyboard.
+4. User selects the password textbox.
+5. User enters password via the keyboard.
+6. User clicks on the "Teacher" button.
+7. User selects the "continue" button.
+
+Expected Result: Application creates a new account for the user. After which the user is taken to next page where he/she is given the option ot continue/edit account/delete account/return to main menu.
+
+Test Status: Passed
+
+Test 3: Take a quiz
+Steps:
+1. User enters host name and port number
+2. User logs in as a Student
+3. User selects Continue
+4. User chooses a course and presses enter
+5. User chooses “Take a quiz” 
+6. User chooses a quiz.
+7. User then chooses any answer for as many questions as there are.
+
+Expected result: The application will allow the User to log in as a student, choose a course, and then take a quiz, while printing a .txt document with the User's answers.
+
+Test Status: Passed
+
+Test 4: Create a quiz
+1. User launches application and selects “Log in”.
+2. User enters username and password via textbook
+3. User selects the “Log in” button.
+4. User selects “Continue”.
+5. User selects “Create a new course”.
+6. User enters a course name and selects “OK”.
+7. User selects “View a Course”.
+8. User selects the previously entered course from the dropdown menu.
+9. User selects “Create a new quiz”.
+10. User enters “quizName”, “1”, and selects “No” and “continue”.
+11. User enters an integer.
+12. User selects “No”.
+13. User fills in question and answer prompts and selects “Enter”.
+	
+Expected result: Application allows for user to log in through an account, specifically with a  “Teacher” role. Afterwards, the user creates a new course, and then creates a quiz through this course.
+
+Test Status: Passed
