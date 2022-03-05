@@ -1,0 +1,462 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+/**
+ * StudentClient.java
+ *
+ *
+ * The StudentClient and Server classes contain the code for using the
+ * student role, including taking quizzes and viewing graded submissions.
+ *
+ * @author group #85
+ * @version December 13, 2021
+ */
+public class StudentClient  {
+    private static String username;
+    private static LoginClient loginClient;
+    private static BufferedReader bfr;
+    private static PrintWriter pw;
+    private static ObjectOutputStream oos;
+    private static ObjectInputStream ois;
+    private static JFrame frame;
+    private static JPanel panelOne;
+    private static JPanel panelTwo;
+    private static JPanel panelThree;
+    private static JPanel panelFour;
+    private static JPanel panelFive;
+    private static String[][] graded2dArray;
+    private static String quizName;
+    private static int counter = 0;
+    private static int counter2 = 0;
+    private static ArrayList<String> lines = new ArrayList<>();
+    private static int numberOfQuestions;
+    private static String[][] options;
+    private static String[] questionArray;
+    private static String totalScoreString;
+    private static Date date = new Date();
+
+
+    public static void startOfStudentGUI(JFrame frame1, LoginClient loginClient1, ObjectOutputStream objectOutputStream, ObjectInputStream objectInputStream, PrintWriter printWriter, BufferedReader bufferedReader, JPanel panel1) throws IOException, ClassNotFoundException {
+        loginClient = loginClient1;
+        oos = objectOutputStream;
+        ois = objectInputStream;
+        pw = printWriter;
+        bfr = bufferedReader;
+        frame = frame1;
+        String[] courses = (String[]) ois.readObject();
+        JComboBox<String> courseDropDown = new JComboBox<>(courses);
+        panelOne = new JPanel();
+        JLabel chooseCoursePrompt = new JLabel("Choose a course:");
+        JButton enterCourseButton = new JButton("Enter");
+        JButton returnToMainMenuButton = new JButton("Return to main menu");
+        returnToMainMenuButton.setActionCommand("return to main menu");
+        enterCourseButton.setActionCommand("enter");
+
+        enterCourseButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    oos.writeObject(enterCourseButton);
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+
+
+                String course = courseDropDown.getItemAt(courseDropDown.getSelectedIndex());
+
+                pw.println(course);
+                pw.flush();
+
+                studentMainMenu(frame, loginClient, oos, ois, pw, bfr);
+
+
+            }
+        });
+        returnToMainMenuButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                frame.getContentPane().removeAll(); // clears the frame
+                frame.repaint(); // so that JFrame does not freeze
+                frame.add(panel1); // adds the panel2 containing login and create account buttons
+                frame.setVisible(true); // makes the changes visible
+            }
+        });
+        panelOne.add(chooseCoursePrompt);
+        panelOne.add(courseDropDown);
+        panelOne.add(enterCourseButton);
+        panelOne.add(returnToMainMenuButton);
+        frame.getContentPane().removeAll();
+        frame.repaint();
+        frame.add(panelOne);
+        frame.setVisible(true);
+    }
+
+    public static void studentMainMenu(JFrame frame, LoginClient loginClient, ObjectOutputStream oos, ObjectInputStream ois, PrintWriter pw, BufferedReader bfr){
+        panelTwo = new JPanel();
+        JButton takeQuizButton = new JButton("Take a quiz");
+        JButton gradeQuizButton = new JButton("View a graded quiz");
+        JButton returnToCourseSelectionButton = new JButton("Return to course selection");
+        takeQuizButton.setActionCommand("take quiz");
+        gradeQuizButton.setActionCommand("grade quiz");
+        returnToCourseSelectionButton.setActionCommand("return to course selection");
+
+        takeQuizButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    oos.writeObject(takeQuizButton);
+                    oos.flush();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+                takeQuizPromptGUI();
+
+
+            }
+        });
+        gradeQuizButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    oos.writeObject(gradeQuizButton);
+                    oos.flush();
+                    gradeQuizPrompt();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+        returnToCourseSelectionButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    oos.writeObject(returnToCourseSelectionButton);
+                    oos.flush();
+                    frame.getContentPane().removeAll();
+                    frame.repaint();
+                    frame.add(panelOne);
+                    frame.setVisible(true);
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+
+            }
+        });
+
+
+        panelTwo.add(takeQuizButton);
+        panelTwo.add(gradeQuizButton);
+        panelTwo.add(returnToCourseSelectionButton);
+        frame.getContentPane().removeAll();
+        frame.repaint();
+        frame.add(panelTwo);
+        frame.setVisible(true);
+    }
+
+    public static void gradeQuizPrompt() {
+        panelThree = new JPanel();
+        JLabel askWhatQuiz = new JLabel("Please enter the name of the quiz you would like to view graded for:");
+        JTextField quizChosenField = new JTextField(10);
+        quizChosenField.setEditable(true);
+        JButton enterQuizButton = new JButton("Enter");
+        enterQuizButton.setActionCommand("enter quiz button for graded quiz");
+
+
+
+        enterQuizButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    oos.writeObject(enterQuizButton);
+                    username = bfr.readLine();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+                quizName = quizChosenField.getText();
+                pw.println(quizName);
+                pw.flush();
+                try {
+                    totalScoreString = bfr.readLine();
+                    System.out.println("total score value read as " + totalScoreString);
+                    graded2dArray = (String[][]) ois.readObject();
+                    gradeQuizGUI();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                } catch (ClassNotFoundException ex) {
+                    ex.printStackTrace();
+                }
+
+            }
+        });
+
+        panelThree.add(askWhatQuiz);
+        panelThree.add(quizChosenField);
+        panelThree.add(enterQuizButton);
+        frame.getContentPane().removeAll();
+        frame.repaint();
+        frame.add(panelThree);
+        frame.setVisible(true);
+    }
+
+    public static void gradeQuizGUI() throws IOException, ClassNotFoundException {
+        panelFour = new JPanel();
+        JButton enterButtonGraded = new JButton("Continue");
+        JLabel questionLabel = new JLabel("Question " + (counter2+1) + ": " + graded2dArray[counter2][0]);
+        JLabel answerLabel = new JLabel("Student Answer: " + graded2dArray[counter2][1]);
+        JLabel gradedLabel = new JLabel("Points Scored: " + graded2dArray[counter2][2]);
+
+        counter2++;
+        enterButtonGraded.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                counter++;
+                if (counter < graded2dArray.length){
+
+                    frame.getContentPane().removeAll();
+                    frame.repaint();
+                    try {
+                        gradeQuizGUI();
+                    } catch (IOException | ClassNotFoundException ex) {
+                        ex.printStackTrace();
+                    }
+                }
+                else if (counter==graded2dArray.length){
+                    counter2=0;
+                    counter=0;
+                    frame.getContentPane().removeAll();
+                    frame.repaint();
+                    finalGradeGUI();
+
+                }
+            }
+        });
+        panelFour.add(questionLabel);
+        panelFour.add(answerLabel);
+        panelFour.add(gradedLabel);
+        panelFour.add(enterButtonGraded);
+        frame.getContentPane().removeAll();
+        frame.repaint();
+        frame.add(panelFour);
+        frame.setVisible(true);
+
+
+    }
+
+    public static void finalGradeGUI(){
+        panelFive = new JPanel();
+        JLabel finalGradeScreen = new JLabel("Your final score is: " + totalScoreString);
+        JButton continueFinalGradeScreen = new JButton("Return to Quiz Menu");
+        continueFinalGradeScreen.setActionCommand("return to quiz menu");
+
+        continueFinalGradeScreen.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    oos.writeObject(continueFinalGradeScreen);
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+                frame.getContentPane().removeAll();
+                frame.repaint();
+                frame.add(panelTwo);
+                frame.setVisible(true);
+            }
+        });
+        panelFive.add(finalGradeScreen);
+        panelFive.add(continueFinalGradeScreen);
+        frame.getContentPane().removeAll();
+        frame.repaint();
+        frame.add(panelFive);
+        frame.setVisible(true);
+    }
+
+    public static void takeQuizPromptGUI() {
+        //Needs randomization and subset implementation(this code includes it)
+        panelThree = new JPanel();
+
+        JLabel askWhatQuiz = new JLabel("Please enter the quiz you would like to take:");
+        JTextField quizChosenField = new JTextField(10);
+        JButton enterQuizButton = new JButton("Enter");
+        enterQuizButton.setActionCommand("enter quiz button");
+        quizChosenField.setEditable(true);
+
+        enterQuizButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    oos.writeObject(enterQuizButton);
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+                quizName = quizChosenField.getText();
+                try {
+                    pw.println(quizName);
+                    pw.flush();
+                    lines = (ArrayList<String>) ois.readObject();
+                    questionArray = (String[]) ois.readObject();
+                    numberOfQuestions = questionArray.length;
+                    options = (String[][]) ois.readObject();
+                    takeQuiz();
+                } catch (IOException | ClassNotFoundException ex) {
+                    ex.printStackTrace();
+                }
+
+            }
+        });
+        panelThree.add(askWhatQuiz);
+        panelThree.add(quizChosenField);
+        panelThree.add(enterQuizButton);
+        frame.getContentPane().removeAll();
+        frame.repaint();
+        frame.add(panelThree);
+        frame.setVisible(true);
+
+    }
+
+    public static void takeQuiz() throws IOException, ClassNotFoundException {
+
+        panelFour = new JPanel();
+
+        JLabel question = new JLabel(questionArray[counter2]);
+        System.out.println(counter2);
+
+        JButton answerOne = new JButton(options[counter2][0]);
+        JButton answerTwo = new JButton(options[counter2][1]);
+        JButton answerThree = new JButton(options[counter2][2]);
+        JButton answerFour = new JButton(options[counter2][3]);
+
+        answerOne.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                //new
+                pw.println(questionArray[counter2]);
+                pw.flush();
+                pw.println(options[counter2][0]);
+                pw.flush();
+                //new
+                counter2++;
+                if (counter2 < numberOfQuestions) {
+                    frame.getContentPane().removeAll();
+                    frame.repaint();
+                    try {
+                        takeQuiz();
+                    } catch (IOException | ClassNotFoundException ex) {
+                        ex.printStackTrace();
+                    }
+
+                } else if (counter2 == numberOfQuestions) {
+
+                    JOptionPane.showMessageDialog(null, "Thank you for taking the quiz !", "Quiz over", JOptionPane.INFORMATION_MESSAGE);
+                    frame.getContentPane().removeAll();
+                    frame.repaint();
+                    frame.add(panelTwo);
+                    frame.setVisible(true);
+                }
+                counter++;
+            }
+        });
+        answerTwo.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                //new
+                pw.println(questionArray[counter2]);
+                pw.flush();
+                pw.println(options[counter2][1]);
+                pw.flush();
+                //new
+                counter2++;
+                if (counter2 < numberOfQuestions) {
+                    frame.getContentPane().removeAll();
+                    frame.repaint();
+                    try {
+                        takeQuiz();
+                    } catch (IOException | ClassNotFoundException ex) {
+                        ex.printStackTrace();
+                    }
+
+                } else if (counter2 == numberOfQuestions) {
+                    JOptionPane.showMessageDialog(null, "Thank you for taking the quiz !", "Quiz over", JOptionPane.INFORMATION_MESSAGE);
+                    frame.getContentPane().removeAll();
+                    frame.repaint();
+                    frame.add(panelTwo);
+                    frame.setVisible(true);
+                }
+                counter++;
+            }
+        });
+        answerThree.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                //new
+                pw.println(questionArray[counter2]);
+                pw.flush();
+                pw.println(options[counter2][2]);
+                pw.flush();
+                //new
+                counter2++;
+                if (counter2 < numberOfQuestions) {
+                    frame.getContentPane().removeAll();
+                    frame.repaint();
+                    try {
+                        takeQuiz();
+                    } catch (IOException | ClassNotFoundException ex) {
+                        ex.printStackTrace();
+                    }
+
+                } else if (counter2 == numberOfQuestions) {
+                        JOptionPane.showMessageDialog(null, "Thank you for taking the quiz !", "Quiz over", JOptionPane.INFORMATION_MESSAGE);
+                        frame.getContentPane().removeAll();
+                        frame.repaint();
+                        frame.add(panelTwo);
+                        frame.setVisible(true);
+                }
+                counter++;
+            }
+        });
+        answerFour.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                //new
+                pw.println(questionArray[counter2]);
+                pw.flush();
+                pw.println(options[counter2][3]);
+                pw.flush();
+                //new
+
+                counter2++;
+                if (counter2 < numberOfQuestions) {
+                    frame.getContentPane().removeAll();
+                    frame.repaint();
+                    try {
+                        takeQuiz();
+                    } catch (IOException | ClassNotFoundException ex) {
+                        ex.printStackTrace();
+                    }
+
+                } else if (counter2 == numberOfQuestions) {
+                    JOptionPane.showMessageDialog(null, "Thank you for taking the quiz !", "Quiz over", JOptionPane.INFORMATION_MESSAGE);
+                    frame.getContentPane().removeAll();
+                    frame.repaint();
+                    frame.add(panelTwo);
+                    frame.setVisible(true);
+                }
+                counter++;
+            }
+        });
+        panelFour.add(question);
+        panelFour.add(answerOne);
+        panelFour.add(answerTwo);
+        panelFour.add(answerThree);
+        panelFour.add(answerFour);
+        frame.getContentPane().removeAll();
+        frame.repaint();
+        frame.add(panelFour);
+        frame.setVisible(true);
+    }
+
+
+}
