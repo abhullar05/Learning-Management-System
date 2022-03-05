@@ -3,7 +3,7 @@
 To compile and run the project, simply compile it on whatever system you are using and then run both Server.java and Client.java. The client should connect to the server and will start to run the starting menu. The server's port number is 8000.
 
 ## Classes
-There are 20 classes in this project, most connecting within eachother to create a seamless experience. There are two types of classes that we have; Server classes are classes that the server will run, and Client classes are classes the client will run.
+There are 20 classes in this project, most connecting with each other to create a seamless experience. There are two types of classes that we have; Server classes are classes that the server will run, and Client classes are classes the client will run.
 
 ### Client.java
 Client.java is the main component of the client side of the project. It sets up the host socket, the necessary server writers and readers, the run method for the client side, and the contains the createGUI method, which is the starting point for the complex GUIs. It also produces LoginClient loginClient to transfer the server writers and readers across the GUIs.
