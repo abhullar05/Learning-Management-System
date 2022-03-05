@@ -1,0 +1,34 @@
+/**
+ * Question.java
+ *
+ * This class gets five string inputs from the main method
+ * and reformats it in a certain order so that when printed
+ * into text file later on, the format is correct. This class
+ * contains two method Question() and toString().
+ *
+ * @author group #85
+ *
+ * @version December 13, 2021
+ *
+ */
+public class Question {
+    private String question;
+    private String answerOne;
+    private String answerTwo;
+    private String answerThree;
+    private String answerFour;
+    public Question(String question, String answerOne, String answerTwo, String answerThree, String answerFour) {
+        this.question = question;
+        this.answerOne = answerOne;
+        this.answerTwo = answerTwo;
+        this.answerThree = answerThree;
+        this.answerFour = answerFour;
+    }
+
+    @Override
+    public String toString() {
+        return question + "\n" + answerOne + "\n" + answerTwo + "\n" + answerThree + "\n"
+                + answerFour;
+    }
+
+}
