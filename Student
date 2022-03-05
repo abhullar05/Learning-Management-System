@@ -1,0 +1,200 @@
+import java.io.*;
+import java.util.*;
+/**
+ * Student.java
+ *
+ * Contains a readQuiz method and a gradeQuiz method, the former being able to read the quiz file's and separate them
+ * into a Question object array, and the latter being able to grade a student's quiz file by comparing it to the quiz's
+ * answerkey that would've been created by a teacher.
+ *
+ * @author Aden Kropp, Samarth Badyal, Advit Bhullar
+ *
+ * @version December 13, 2021
+ */
+public class Student {
+
+    /**
+     * Reads quiz with inputted filename and sorts into Question[]
+     *
+     * @param filename filename given by user to be read by the method
+     * @return A Question[] that holds question objects
+     */
+    public static Question[] readQuiz(String filename) {
+        ArrayList<Question> questionsArrayList = new ArrayList<>(); //Adds arraylist to sort reads into
+        try {
+            BufferedReader bfr = new BufferedReader(new FileReader(filename));
+            String yesNoAndDeadline = bfr.readLine();   //Filler to discard first line read
+            String question = bfr.readLine();   //Identifies question read
+            String answerOne = bfr.readLine();  //Identifies first answer read
+            String answerTwo = bfr.readLine();  //Identifies second answer read
+            String answerThree = bfr.readLine();  //Identifies third answer read
+            String answerFour = bfr.readLine();  //Identifies fourth answer
+            while (question != null) {
+                Question questionObject = new Question(question, answerOne, answerTwo, answerThree, answerFour);
+                questionsArrayList.add(questionObject);
+                question = bfr.readLine();
+                answerOne = bfr.readLine();
+                answerTwo = bfr.readLine();
+                answerThree = bfr.readLine();
+                answerFour = bfr.readLine();
+            }
+            bfr.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        Question[] questionArray = new Question[questionsArrayList.size()]; //Creates a new array that initializes
+        // with the same size as the arraylist
+        questionArray = questionsArrayList.toArray(questionArray); //Copies the arraylist into the array
+        return questionArray;
+    }
+
+    /**
+     * Grades a student quiz when given the proper parameters
+     *
+     * @param filename given by user to be read by the method
+     * @param username given by user to be combined with filename to read user specific quiz results
+     * @param course given by user to be combined with filename to read course specific quizzes
+     * @return A String that displays the questions and answers that the student answered and
+     * the amount of points they earned on the quiz
+     */
+    public static String gradeQuiz(String filename, String username, String course, Object gatekeeper) {
+        String grades = ""; //The final string that is being returned to the user with the proper information needed
+        ArrayList<String> answerSheetArrayList = new ArrayList<>(); //Arraylist for the answer sheet to read into
+        ArrayList<String> answerKeyArrayList = new ArrayList<>();   //Arraylist for the answer key to read into
+        ArrayList<String> answerKeyPointValues = new ArrayList<>(); //Arraylist for the point values to read into
+        boolean isCorrect = false;  //Boolean that returns true if a student is correct
+        boolean isIncorrect = false;    //Boolean that returns true if a student is incorrect
+        boolean exists = false; //Boolean that ensures that the file does not exist before creating and adding to it.
+        int totalStudentScore = 0; //Total points that the student got correct
+        int totalPossibleScore = 0; //Total points that the student could have gotten
+        synchronized (gatekeeper) {
+            try {
+                File f = new File(course + "_" + username + "_" + filename + "_gradedanswersheet");
+                exists = f.exists();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        //If the file exists, the if statement will read from the already existing file instead of creating a new one
+        if (exists) {
+            try {
+                BufferedReader bfr = new BufferedReader(new FileReader(course + "_" + username + "_" + filename +
+                        "_gradedanswersheet"));
+                String line = bfr.readLine();
+                while (line != null) {
+                    grades = grades + "\n" + line;
+                    line = bfr.readLine();
+                }
+                bfr.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else if (!exists) {
+            try {
+                BufferedReader bfr = new BufferedReader(new FileReader(course + "_" + username + "_" + filename +
+                        "_answersheet"));
+                String question = bfr.readLine();   //Reads the question given by the file
+                String answer = bfr.readLine();     //Reads the answer given by the file
+                while (question != null) {
+                    answerSheetArrayList.add(question + "\n" + answer);
+                    question = bfr.readLine();
+                    //If the line starts with a Timestamp, end the loop
+                    if (question.contains("2021")) {
+                        question = null;
+                    }
+                    answer = bfr.readLine();
+                }
+                bfr.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            try {
+                BufferedReader bfr = new BufferedReader(new FileReader(course + "_" + filename + "_answerkey"));
+                String question = bfr.readLine();   //Reads the question given by the file
+                String answer = bfr.readLine();     //Reads the answer given by the file
+                while (question != null) {
+                    answerKeyArrayList.add(question + "\n" + answer);
+                    question = bfr.readLine();
+                    //If the question starts with a +, such as in the case of storing point values, add the question
+                    // to the point value array
+                    if (question.startsWith("+")) {
+                        answerKeyPointValues.add(question);
+                        question = bfr.readLine();
+                    }
+                    answer = bfr.readLine();
+                }
+                bfr.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            String[] answerSheetArray = new String[answerSheetArrayList.size()];    //Transfer arraylist to array
+            answerSheetArray = answerSheetArrayList.toArray(answerSheetArray);
+            String[] answerKeyArray = new String[answerKeyArrayList.size()];    //Transfer arraylist to array
+            answerKeyArray = answerKeyArrayList.toArray(answerKeyArray);
+            Integer[] answerKeyPointValuesArray = new Integer[answerKeyPointValues.size()];     //Transfer arraylist
+            // to array
+            for (int i = 0; i < answerKeyPointValuesArray.length; i++) {
+                answerKeyPointValuesArray[i] = Character.getNumericValue(answerKeyPointValues.get(i).charAt(2));
+                totalPossibleScore += answerKeyPointValuesArray[i];
+            }
+            for (int i = 0; i < answerSheetArray.length; i++) {
+                isCorrect = false;
+                isIncorrect = false;
+                do {
+                    for (int j = 0; j < answerSheetArray.length; j++) {
+                        if (answerSheetArray[i].equals(answerKeyArray[j])) {
+                            try {
+                                PrintWriter pw = new PrintWriter(new FileOutputStream(course + "_" + username + "_" +
+                                        filename + "_gradedanswersheet",
+                                        true));
+                                synchronized (gatekeeper) {
+                                    pw.println("Question " + (i + 1) + ":\n" + answerSheetArray[i] +
+                                            "\n+ " + answerKeyPointValuesArray[j] + " points");
+                                }
+                                totalStudentScore += answerKeyPointValuesArray[j];
+                                pw.close();
+                                isCorrect = true;
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                    if (!isCorrect) {
+                        try {
+                            PrintWriter pw = new PrintWriter(new FileOutputStream(course + "_" + username + "_" +
+                                    filename + "_gradedanswersheet",
+                                    true));
+                            synchronized (gatekeeper) {
+                                pw.println("Question " + (i + 1) + ":\n" + answerSheetArray[i] + "\n+ 0 points");
+                            }
+                            pw.close();
+                            isIncorrect = true;
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                } while (!isCorrect && !isIncorrect);
+            }
+            try {
+                BufferedReader bfr = new BufferedReader(new FileReader(course + "_" + username + "_" + filename +
+                        "_gradedanswersheet"));
+                String line = bfr.readLine();   //reads the line and adds it to grades string
+                while (line != null) {
+                    grades = grades + "\n" + line;
+                    line = bfr.readLine();
+                }
+                PrintWriter pw = new PrintWriter(new FileOutputStream(course + "_" + username + "_" + filename +
+                        "_gradedanswersheet", true));
+                synchronized (gatekeeper) {
+                    pw.println("Total Score: " + totalStudentScore + "/" + totalPossibleScore);
+                }
+                bfr.close();
+                pw.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            grades = grades + "\nTotal Score: " + totalStudentScore + "/" + totalPossibleScore;
+        }
+        return grades;
+    }
+}
