@@ -1,3 +1,12 @@
+<img width="328" alt="Screen Shot 2022-03-05 at 7 08 24 PM" src="https://user-images.githubusercontent.com/89639405/156903930-49400dcc-8a35-4a06-9614-42755af02b6d.png">
+<img width="300" alt="Screen Shot 2022-03-05 at 7 09 00 PM" src="https://user-images.githubusercontent.com/89639405/156903931-464591e3-801d-425a-8eaa-1eb19e278936.png">
+<img width="522" alt="Screen Shot 2022-03-05 at 7 10 27 PM" src="https://user-images.githubusercontent.com/89639405/156903932-e3d952e8-b357-481b-a8d1-7ddabf4ac18c.png">
+<img width="1439" alt="Screen Shot 2022-03-05 at 7 10 43 PM" src="https://user-images.githubusercontent.com/89639405/156903933-558eb13d-744b-4ae4-869e-290dd1e4d722.png">
+<img width="641" alt="Screen Shot 2022-03-05 at 7 10 55 PM" src="https://user-images.githubusercontent.com/89639405/156903934-a7f8e9ca-cfc4-44ce-b087-6d3e71e1134d.png">
+<img width="1207" alt="Screen Shot 2022-03-05 at 7 11 04 PM" src="https://user-images.githubusercontent.com/89639405/156903935-702e05a0-f48b-4548-ba24-3b53e11d75e8.png">
+<img width="780" alt="Screen Shot 2022-03-05 at 7 11 14 PM" src="https://user-images.githubusercontent.com/89639405/156903936-900201f7-4649-4191-8b91-57fc069bfe28.png">
+<img width="1439" alt="Screen Shot 2022-03-05 at 7 11 34 PM" src="https://user-images.githubusercontent.com/89639405/156903937-2d902730-f1e1-4f86-9e50-3ea4d1381f36.png">
+<img width="1434" alt="Screen Shot 2022-03-05 at 7 11 49 PM" src="https://user-images.githubusercontent.com/89639405/156903939-63306807-0986-4bbb-ac68-c0d3e994024d.png">
 # Project-5
 ## How to run.
 To compile and run the project, simply compile it on whatever system you are using and then run both Server.java and Client.java. The client should connect to the server and will start to run the starting menu. The server's port number is 8000.
