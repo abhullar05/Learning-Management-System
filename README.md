@@ -7,6 +7,8 @@
 <img width="780" alt="Screen Shot 2022-03-05 at 7 11 14 PM" src="https://user-images.githubusercontent.com/89639405/156903936-900201f7-4649-4191-8b91-57fc069bfe28.png">
 <img width="1439" alt="Screen Shot 2022-03-05 at 7 11 34 PM" src="https://user-images.githubusercontent.com/89639405/156903937-2d902730-f1e1-4f86-9e50-3ea4d1381f36.png">
 <img width="1434" alt="Screen Shot 2022-03-05 at 7 11 49 PM" src="https://user-images.githubusercontent.com/89639405/156903939-63306807-0986-4bbb-ac68-c0d3e994024d.png">
+Pitch : [project5 (1).pptx](https://github.com/abhullar05/Project---05-CS180/files/8191717/project5.1.pptx)
+
 # Project-5
 ## How to run.
 To compile and run the project, simply compile it on whatever system you are using and then run both Server.java and Client.java. The client should connect to the server and will start to run the starting menu. The server's port number is 8000.
